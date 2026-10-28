@@ -1,36 +1,281 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#12291e"><title>PrepMode</title><style>
 *{box-sizing:border-box}body{margin:0;background:#102119;color:#eaf4ec;font:16px system-ui}main{max-width:760px;margin:auto;padding:24px 16px 90px}h1{font-size:34px;margin:0}p,small{color:#afc5b6}.card{background:#1c3829;border:1px solid #365743;border-radius:18px;padding:16px;margin:12px 0}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}.stats strong{display:block;font-size:25px}button{border:0;border-radius:12px;padding:11px 14px;background:#b8e8b7;color:#102719;font-weight:700;cursor:pointer}button.alt{background:#365743;color:#fff}nav{display:flex;gap:8px;margin:20px 0;overflow:auto}.meal{border-top:1px solid #42604b;padding:12px 0}.meal strong{display:block;margin:5px 0}.meal button{margin-top:8px}input[type=number]{width:90px;padding:9px;background:#102119;border:1px solid #71907a;color:white;border-radius:8px}.grocery{display:grid;grid-template-columns:1fr 1fr;gap:8px}.grocery label{padding:10px;background:#1c3829;border-radius:10px}.done{opacity:.5;text-decoration:line-through}@media(max-width:500px){.grocery{grid-template-columns:1fr}}
-</style></head><body><main><p>YOUR PERSONAL KITCHEN</p><h1>🥑 PrepMode</h1><p>Two substantial meals a day. More cooking, less planning.</p><div class="stats"><div class="card"><small>Daily calorie target</small><strong id="calText"></strong></div><div class="card"><small>Daily protein target</small><strong id="proteinText"></strong></div></div><nav><button data-tab="plan">Meal plan</button><button data-tab="groceries" class="alt">Groceries</button><button data-tab="settings" class="alt">Settings</button></nav><section id="plan"><div class="row"><h2>7-day plan</h2><button id="generate">New week ↻</button></div><p>Swap meals individually. Your choices save on this device.</p><div id="days"></div></section><section id="groceries" hidden><h2>Grocery list</h2><p>Ingredient totals for all 14 meals.</p><button id="copy">Copy list</button><button class="alt" id="uncheck">Clear checks</button><div id="list" class="grocery" style="margin-top:15px"></div></section><section id="settings" hidden><h2>Preferences</h2><div class="card"><label>Calories/day <input type="number" id="cal" min="1000" max="5000"></label><p><label>Protein/day (g) <input type="number" id="protein" min="30" max="350"></label></p><button id="save">Save</button></div><p>One person · Two meals/day · Breakfast-friendly · High-protein · No reheated chicken breast</p></section><p style="margin-top:30px;font-size:12px">Nutrition is illustrative, not verified. Plans are generated locally; automatic Sunday generation and cross-device sync are future features.</p></main><script>
+.recipe-guide{line-height:1.55;margin-top:8px}.recipe-guide summary{cursor:pointer;padding:10px 0;font-weight:700}.recipe-guide h4{margin:18px 0 6px}.recipe-guide p{margin:8px 0}.recipe-guide ol,.ingredients{padding-left:24px}.recipe-guide li{margin:8px 0}.recipe-time{font-weight:700}.food-safety{border-left:3px solid #b8e8b7;padding-left:12px}.recipe-guide a{color:#b8e8b7}
+</style></head><body><main><p>YOUR PERSONAL KITCHEN</p><h1>🥑 PrepMode</h1><p>Two substantial meals a day. More cooking, less planning.</p><div class="stats"><div class="card"><small>Daily calorie target</small><strong id="calText"></strong></div><div class="card"><small>Daily protein target</small><strong id="proteinText"></strong></div></div><nav><button data-tab="plan">Meal plan</button><button data-tab="groceries" class="alt">Groceries</button><button data-tab="settings" class="alt">Settings</button></nav><section id="plan"><div class="row"><h2>7-day plan</h2><button id="generate">New week ↻</button></div><p>Swap meals individually. Your choices save on this device.</p><div id="days"></div></section><section id="groceries" hidden><h2>Grocery list</h2><p>Ingredient totals for all 14 meals, including oil and seasonings. Tap water is listed in recipes only.</p><button id="copy">Copy list</button><button class="alt" id="uncheck">Clear checks</button><div id="list" class="grocery" style="margin-top:15px"></div></section><section id="settings" hidden><h2>Preferences</h2><div class="card"><label>Calories/day <input type="number" id="cal" min="1000" max="5000"></label><p><label>Protein/day (g) <input type="number" id="protein" min="30" max="350"></label></p><button id="save">Save</button></div><p>One person · Two meals/day · Breakfast-friendly · High-protein · No reheated chicken breast</p></section><p style="margin-top:30px;font-size:12px">Nutrition is illustrative, not verified. Plans are generated locally; automatic Sunday generation and cross-device sync are future features.</p></main><script>
 const recipes=[
-['Steak & egg burrito','B',920,66,{'Eggs':3,'Tortillas':1,'Sirloin (oz)':6,'Cheddar (oz)':1}],
-['Turkey sausage hash','B',870,64,{'Eggs':3,'Turkey sausage (oz)':6,'Potatoes (oz)':10,'Spinach (cups)':2}],
-['Smoked salmon toast','B',810,60,{'Eggs':3,'Smoked salmon (oz)':5,'Bread slices':3,'Avocados':1}],
-['Protein pancakes & yogurt','B',850,63,{'Oats (cups)':1,'Eggs':3,'Greek yogurt (cups)':1,'Berries (cups)':1}],
-['Shakshuka with turkey','B',880,67,{'Eggs':4,'Ground turkey (oz)':6,'Tomatoes (cups)':1,'Pita':2}],
-['Loaded omelet & potatoes','B',910,65,{'Eggs':4,'Ham (oz)':5,'Cheddar (oz)':2,'Potatoes (oz)':10}],
-['Turkey egg bagels','B',900,68,{'Eggs':3,'Bagels':2,'Turkey slices (oz)':6,'Swiss (oz)':2}],
-['Grilled wings & wedges','D',1130,94,{'Chicken wings (oz)':16,'Potatoes (oz)':12,'Broccoli (cups)':2}],
-['Salmon rice bowl','D',1090,83,{'Salmon (oz)':10,'Dry rice (cups)':0.75,'Edamame (cups)':1,'Cucumbers':1}],
-['Beef taco bowls','D',1180,91,{'Ground beef (oz)':12,'Dry rice (cups)':0.75,'Black beans (cups)':1,'Salsa (cups)':0.5}],
-['Garlic shrimp pasta','D',1050,89,{'Shrimp (oz)':14,'Dry pasta (oz)':5,'Parmesan (oz)':1,'Spinach (cups)':2}],
-['Turkey burgers & fries','D',1100,90,{'Ground turkey (oz)':12,'Burger buns':2,'Sweet potatoes (oz)':12}],
-['Chicken thigh stir-fry','D',1120,91,{'Chicken thighs (oz)':14,'Dry rice (cups)':0.75,'Mixed vegetables (cups)':3}],
-['Pork tenderloin & mash','D',1070,93,{'Pork tenderloin (oz)':13,'Potatoes (oz)':12,'Green beans (cups)':2}]
+['Steak & egg burrito','B',920,66,{'Eggs':3,'Burrito tortillas (12-inch)':1,'Boneless sirloin steak (oz)':6,'Cheddar (oz)':1,'Olive oil (tsp)':2,'Salt (tsp)':0.25,'Black pepper (tsp)':0.25}],
+['Turkey sausage hash','B',870,64,{'Eggs':3,'Raw turkey sausage (oz)':6,'Potatoes (oz)':10,'Spinach (cups)':2,'Olive oil (tsp)':2,'Salt (tsp)':0.25,'Black pepper (tsp)':0.25,'Water (cups)':4}],
+['Smoked salmon toast','B',810,60,{'Eggs':3,'Fully cooked hot-smoked salmon (oz)':5,'Bread slices':3,'Avocados':1,'Olive oil (tsp)':1,'Salt (tsp)':0.125,'Black pepper (tsp)':0.125,'Water (tbsp)':1}],
+['Protein pancakes & yogurt','B',850,63,{'Rolled oats (cups)':1,'Eggs':3,'Greek yogurt (cups)':1,'Berries (cups)':1,'Olive oil (tsp)':2,'Salt (tsp)':0.125,'Cinnamon (tsp)':0.5,'Water (cups)':0.25}],
+['Shakshuka with turkey','B',880,67,{'Eggs':4,'Ground turkey (oz)':6,'Canned diced tomatoes with juice (cups)':1,'Pita':2,'Olive oil (tsp)':2,'Salt (tsp)':0.25,'Black pepper (tsp)':0.125,'Ground cumin (tsp)':0.5,'Paprika (tsp)':0.5,'Water (cups)':0.25}],
+['Loaded omelet & potatoes','B',910,65,{'Eggs':4,'Fully cooked ham (oz)':5,'Cheddar (oz)':2,'Potatoes (oz)':10,'Olive oil (tsp)':3,'Salt (tsp)':0.25,'Black pepper (tsp)':0.25,'Water (tbsp)':1}],
+['Turkey egg bagels','B',900,68,{'Eggs':3,'Bagels':2,'Fully cooked deli turkey (oz)':6,'Swiss (oz)':2,'Olive oil (tsp)':1,'Salt (tsp)':0.125,'Black pepper (tsp)':0.125,'Water (tbsp)':1}],
+['Grilled wings & wedges','D',1130,94,{'Raw split chicken wings, bone-in (oz)':16,'Potatoes (oz)':12,'Broccoli (cups)':2,'Olive oil (tsp)':4,'Salt (tsp)':0.5,'Black pepper (tsp)':0.25,'Paprika (tsp)':1,'Garlic powder (tsp)':0.5,'Water (cups)':0.25}],
+['Salmon rice bowl','D',1090,83,{'Raw salmon fillets (oz)':10,'Dry long-grain white rice (cups)':0.75,'Frozen shelled edamame (cups)':1,'Cucumbers':1,'Olive oil (tsp)':2,'Salt (tsp)':0.25,'Black pepper (tsp)':0.125,'Soy sauce (tbsp)':1,'Water (cups)':5.5}],
+['Beef taco bowls','D',1180,91,{'Ground beef (oz)':12,'Dry long-grain white rice (cups)':0.75,'Canned black beans, drained (cups)':1,'Salsa (cups)':0.5,'Olive oil (tsp)':1,'Salt (tsp)':0.25,'Black pepper (tsp)':0.25,'Ground cumin (tsp)':1,'Salt-free chili powder blend (tsp)':1,'Paprika (tsp)':0.5,'Water (cups)':1.75}],
+['Garlic shrimp pasta','D',1050,89,{'Raw peeled deveined shrimp (oz)':14,'Dry penne pasta (oz)':5,'Parmesan (oz)':1,'Spinach (cups)':2,'Garlic cloves':3,'Olive oil (tsp)':3,'Salt (tsp)':0.5,'Black pepper (tsp)':0.25,'Water (cups)':8}],
+['Turkey burgers & fries','D',1100,90,{'Ground turkey (oz)':12,'Burger buns':2,'Sweet potatoes (oz)':12,'Olive oil (tsp)':3,'Salt (tsp)':0.5,'Black pepper (tsp)':0.25,'Paprika (tsp)':0.5,'Garlic powder (tsp)':0.5}],
+['Chicken thigh stir-fry','D',1120,91,{'Raw boneless skinless chicken thighs (oz)':14,'Dry long-grain white rice (cups)':0.75,'Fresh stir-fry vegetables (cups)':3,'Garlic cloves':2,'Olive oil (tsp)':3,'Soy sauce (tbsp)':2,'Cornstarch (tsp)':1,'Black pepper (tsp)':0.25,'Water (cups)':1.75}],
+['Pork tenderloin & mash','D',1070,93,{'Raw pork tenderloin (oz)':13,'Potatoes (oz)':12,'Green beans (cups)':2,'Milk (cups)':0.25,'Butter (tbsp)':1,'Olive oil (tsp)':2,'Salt (tsp)':0.5,'Black pepper (tsp)':0.25,'Garlic powder (tsp)':0.5,'Water (cups)':6}]
 ],names=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],key='prepmode-v1';
 let state;try{state=JSON.parse(localStorage.getItem(key))}catch{}if(!state||!Array.isArray(state.plan)||state.plan.length!==7)state={plan:[],cal:2200,protein:180,checked:{}};
-const guides=["Dice peppers; sear steak in a skillet; scramble eggs; warm tortilla and wrap with cheddar.","Dice potatoes and cook until tender; brown turkey sausage thoroughly; wilt spinach; add cooked eggs.","Toast bread; cook eggs; slice avocado; layer with smoked salmon and serve.","Mix oats and eggs into batter; cook pancakes on both sides; serve with yogurt and berries.","Brown turkey thoroughly; simmer with tomatoes and spices; crack eggs into sauce; cover until set; serve with pita.","Cook diced potatoes until tender; whisk eggs; add ham and cheese to skillet; fold omelet and serve.","Toast bagels; cook eggs; warm turkey slices; assemble with Swiss cheese.","Roast potato wedges at 425°F until tender; cook wings to 165°F internal temperature; steam broccoli.","Cook rice and edamame; cook salmon to 145°F internal temperature; slice cucumber; assemble bowl.","Cook rice; brown ground beef thoroughly; warm beans; assemble with salsa.","Boil pasta; cook shrimp until opaque; wilt spinach with garlic; toss with parmesan.","Bake sweet potato fries at 425°F until tender; cook turkey patties to 165°F; assemble burgers.","Cook rice; stir-fry chicken to 165°F; add vegetables until tender; serve over rice.","Boil and mash potatoes; roast pork to 145°F and rest 3 minutes; steam beans; serve."];
-function unit(n,q){const m=n.match(/^(.*?) \((oz|cups)\)$/);return m?q+' '+m[2]+' '+m[1]:unit(n,q)}
+// Stable recipe indexes keep saved plans and the two-meals-per-day planner compatible.
+// Each guide contains its own side-dish method; no package directions are needed.
+const guides=[
+{
+  time:'Prep 5 min · Cook 15–20 min · Total 20–25 min',
+  equipment:'Large nonstick skillet, small bowl, spatula, knife, cutting board, instant-read food thermometer.',
+  prep:[
+    'Use a boneless sirloin steak about 3/4 inch thick and a 12-inch burrito tortilla. Pat the steak dry with paper towels. Grate the cheddar.',
+    'Season both sides of the steak with 1/8 tsp salt and 1/8 tsp black pepper. Whisk the 3 eggs in a bowl with the remaining 1/8 tsp salt and 1/8 tsp pepper.'
+  ],
+  steps:[
+    'Heat 1 tsp olive oil in the skillet over medium-high heat for 2 minutes. Add the steak and sear 3–5 minutes per side. Check the center from the side with a thermometer: it must reach 145°F (63°C). If below that, lower to medium and cook 1 minute at a time, checking again.',
+    'Move the steak to a clean board and rest at least 3 minutes before slicing. Meanwhile, lower the skillet to medium-low and add the remaining 1 tsp oil. Pour in the eggs and gently push the curds across the pan for 3–5 minutes, until set with no liquid egg and 160°F (71°C). Transfer the eggs to a clean plate.',
+    'Warm the tortilla in the empty skillet over medium heat for 20–30 seconds per side, until pliable. Slice the rested steak thinly across the grain. Place steak, eggs and cheddar in the tortilla, fold the sides inward, then roll tightly from the bottom. Serve immediately.'
+  ],
+  safety:'Check steak temperature before resting; browning alone does not establish doneness. Keep the cooked steak and eggs off the plate or board used for raw steak.'
+},
+{
+  time:'Prep 5 min · Cook 25–30 min · Total 30–35 min',
+  equipment:'Small saucepan, colander, large nonstick skillet, bowl, spatula, instant-read food thermometer.',
+  prep:[
+    'Scrub the potatoes and cut into even 1/2-inch cubes. Rinse and dry the spinach. Use raw turkey sausage; remove casings if present and break the meat into small pieces.',
+    'Whisk the 3 eggs with 1/8 tsp salt and 1/8 tsp black pepper. Reserve the remaining 1/8 tsp salt and 1/8 tsp pepper for the potatoes.'
+  ],
+  steps:[
+    'Put the potatoes in the saucepan with 4 cups water, adding enough extra water to cover by 1 inch if needed. Bring to a boil over high heat, then simmer over medium heat for 8–10 minutes, until a fork enters easily. Drain well.',
+    'Heat 1 tsp olive oil in the skillet over medium heat for 2 minutes. Add the sausage and cook 8–10 minutes, stirring and breaking it into 1/2-inch crumbles. Check several of the largest pieces with a thermometer: all must reach 165°F (74°C). Continue cooking and checking if needed.',
+    'Add the drained potatoes, spinach and reserved salt and pepper to the cooked sausage. Cook over medium heat for 3–4 minutes, stirring, until spinach is wilted and the potatoes are hot. Transfer to a clean plate.',
+    'Add the remaining 1 tsp oil to the skillet over medium-low heat. Add the eggs and gently stir for 3–5 minutes, until set with no liquid egg and 160°F (71°C). Serve alongside the hash.'
+  ],
+  safety:'Turkey sausage needs 165°F (74°C), even if it looks brown. Cook the eggs fully and use clean utensils for serving.'
+},
+{
+  time:'Prep 5 min · Cook 10–15 min · Total 15–20 min',
+  equipment:'Toaster, nonstick skillet with lid, bowl, spatula, instant-read food thermometer.',
+  prep:[
+    'Use fully cooked, ready-to-eat hot-smoked salmon. Remove skin and any pin bones, then flake into large pieces. Wash the avocado before cutting, remove the pit and skin, and slice the flesh.',
+    'Whisk the 3 eggs with 1/8 tsp salt and 1/8 tsp black pepper.'
+  ],
+  steps:[
+    'Toast all 3 bread slices on a medium toaster setting for about 2–4 minutes, until crisp and lightly golden.',
+    'Put the salmon and 1 tbsp water in the skillet. Cover and warm over medium-low heat for 3–5 minutes, gently turning once, until 165°F (74°C) in the thickest pieces. Add a little extra water if the pan dries. Transfer to a clean plate.',
+    'Add 1 tsp olive oil to the skillet over medium-low heat. Add the eggs and gently stir for 3–5 minutes, until set with no liquid egg and 160°F (71°C). Divide the avocado, warmed salmon and eggs over the toast and eat immediately.'
+  ],
+  safety:'Keep smoked salmon refrigerated until cooking. This guide uses fully cooked hot-smoked salmon and heats it through to 165°F (74°C).'
+},
+{
+  time:'Prep 10 min · Cook 10–15 min · Total 20–25 min',
+  equipment:'Blender, nonstick skillet, 1/4-cup measure, spatula, instant-read food thermometer.',
+  prep:[
+    'Rinse and dry the berries. Blend 1 cup rolled oats for about 1 minute to make a fine flour.',
+    'Add the 3 eggs, 1/4 cup water, 1/8 tsp salt and 1/2 tsp cinnamon to the blender. Blend for 30 seconds, then let the batter stand 5 minutes. It should be thick but pourable; blend in extra water 1 tbsp at a time only if it will not pour.'
+  ],
+  steps:[
+    'Heat the skillet over medium-low heat for 2 minutes and brush with 1 tsp olive oil. Pour batter in 1/4-cup portions, leaving space between pancakes.',
+    'Cook each pancake 2–3 minutes on the first side, until the edges look set and the underside is golden. Flip and cook 1–2 minutes more, until the center is firm, has no wet batter and reaches 160°F (71°C). Lower the heat if the outside browns before the center sets.',
+    'Repeat until all batter is cooked, using the remaining 1 tsp oil for later batches. Serve all the pancakes with 1 cup Greek yogurt and 1 cup berries.'
+  ],
+  safety:'Do not taste raw batter. Check a thick pancake from the side with a thermometer; a browned surface alone does not show that the egg batter is cooked.'
+},
+{
+  time:'Prep 5 min · Cook 25–30 min · Total 30–35 min',
+  equipment:'10-inch skillet with lid, spatula, small dry skillet, instant-read food thermometer.',
+  prep:[
+    'Measure 1 cup canned diced tomatoes including their juice. Measure 1/4 tsp salt, 1/8 tsp black pepper, 1/2 tsp ground cumin and 1/2 tsp paprika.',
+    'Keep the 4 eggs refrigerated until the sauce is ready. Put the 2 pitas near a separate dry skillet for warming.'
+  ],
+  steps:[
+    'Heat 2 tsp olive oil in the lidded skillet over medium heat for 2 minutes. Add the ground turkey and cook 6–8 minutes, breaking it into small crumbles, until 165°F (74°C) in several of the largest pieces.',
+    'Stir in all the measured salt, pepper, cumin and paprika for 30 seconds. Add the tomatoes and 1/4 cup water. Bring to a bubble over medium-high heat, then reduce to low and simmer 5–7 minutes, stirring occasionally, until slightly thickened.',
+    'Make 4 wells in the sauce and crack an egg into each. Cover and cook over low heat for 8–12 minutes, until every white and yolk is firm and the egg-and-turkey mixture reaches 165°F (74°C). Add water 1 tbsp at a time around the edges if the sauce dries before the eggs set. Continue covered in 1-minute intervals if needed.',
+    'While the eggs cook, warm the pitas in the dry skillet over medium heat for 30–60 seconds per side, until soft and warm. Serve both pitas with all the eggs and sauce.'
+  ],
+  safety:'Check both the raw turkey during browning and the finished egg-and-turkey dish. The yolks should be firm, with no runny egg remaining.'
+},
+{
+  time:'Prep 10 min · Cook 25–30 min · Total 35–40 min',
+  equipment:'Oven, rimmed baking sheet, 12-inch nonstick skillet with lid, bowl, spatula, instant-read food thermometer.',
+  prep:[
+    'Heat the oven to 425°F (220°C). Scrub the potatoes and cut into 1/2-inch cubes. Dice the fully cooked ham into 1/2-inch pieces and grate the cheddar.',
+    'Whisk the 4 eggs with 1/8 tsp salt and 1/8 tsp black pepper. Reserve the remaining 1/8 tsp salt and 1/8 tsp pepper for the potatoes.'
+  ],
+  steps:[
+    'Toss the potatoes on the baking sheet with 2 tsp olive oil and the reserved salt and pepper. Spread in one layer. Roast 25–30 minutes, turning halfway, until golden and a fork slides easily into the centers. Continue in 5-minute intervals if still firm.',
+    'During the last 10–12 minutes of roasting, put the ham and 1 tbsp water in the skillet. Warm over medium heat for 3–4 minutes, stirring, until 165°F (74°C). Transfer to a clean plate.',
+    'Lower the skillet to medium-low and add the remaining 1 tsp oil. Pour in the eggs. Cook 4–6 minutes, gently lifting the edges and tilting the pan so liquid egg runs underneath, until the top is nearly set.',
+    'Place ham and cheddar over half the eggs. Fold the other half over the filling, cover and cook over low heat for 2–3 minutes more. Check that the center reaches 165°F (74°C), with no liquid egg and melted cheese; continue covered 1 minute at a time if needed. Serve with the potatoes.'
+  ],
+  safety:'Use fully cooked ham. Check the center of the folded omelet, including the filling, rather than only its hot surface.'
+},
+{
+  time:'Prep 5 min · Cook 10–15 min · Total 15–20 min',
+  equipment:'Toaster, nonstick skillet, bowl, spatula, instant-read food thermometer.',
+  prep:[
+    'Split the 2 bagels. Use fully cooked deli turkey and slice the Swiss thinly.',
+    'Whisk the 3 eggs with 1/8 tsp salt and 1/8 tsp black pepper.'
+  ],
+  steps:[
+    'Toast the bagel halves on a medium toaster setting for 2–4 minutes, until lightly golden.',
+    'Put the turkey slices and 1 tbsp water in the skillet over medium-low heat. Warm 3–5 minutes, turning and separating the slices, until steaming hot and 165°F (74°C). Transfer to a clean plate.',
+    'Add 1 tsp olive oil to the skillet over medium-low heat. Add the eggs and gently stir for 3–5 minutes, until set with no liquid egg and 160°F (71°C). Divide the Swiss, hot turkey and eggs between both bagels and close the sandwiches. Serve immediately.'
+  ],
+  safety:'Check the turkey through a stack of slices so the thermometer tip reaches the center. Cook the eggs until fully set.'
+},
+{
+  time:'Prep 15 min · Cook 35–45 min · Total 50–60 min',
+  equipment:'Oven, rimmed baking sheet, outdoor grill with lid, tongs, small saucepan with lid, instant-read food thermometer.',
+  prep:[
+    'Heat the oven to 425°F (220°C). Scrub the potatoes and cut lengthwise into 1/2-inch-thick wedges. Cut the broccoli into 1-inch florets.',
+    'Use thawed raw wings split into flats and drumettes; the 16 oz includes bones. Pat dry with paper towels. Toss with 2 tsp olive oil, 1/4 tsp salt, 1/8 tsp black pepper, 1/2 tsp paprika and 1/4 tsp garlic powder.',
+    'Set up the outdoor grill with a direct-heat side and an unheated side: light burners on only one half of a gas grill, or bank lit charcoal on one side. Close the lid and preheat 10–15 minutes to 400–425°F (205–220°C).'
+  ],
+  steps:[
+    'Toss the potato wedges with the remaining 2 tsp oil, 1/4 tsp salt, 1/8 tsp pepper, 1/2 tsp paprika and 1/4 tsp garlic powder. Spread on the baking sheet in one layer. Roast 30–35 minutes, turning after 15 minutes, until browned and fork-tender. Give firm wedges another 5 minutes.',
+    'Place wings on the unheated side of the grill and close the lid. Cook over indirect heat for 25–35 minutes, turning every 10 minutes and keeping the grill at 400–425°F (205–220°C). Check several wings in the thickest meat without touching bone: each must reach 165°F (74°C). Continue covered in 5-minute intervals if needed.',
+    'Move cooked wings over direct heat for 2–3 minutes per side to crisp the skin, turning frequently and moving them away from flare-ups. Transfer with clean tongs to a clean plate.',
+    'Near the end of cooking, bring 1/4 cup water to a boil over medium-high heat in the small saucepan. Add broccoli, cover and reduce to medium. Steam 4–6 minutes, until bright green and a fork enters the stems easily; add 1 tbsp water if the pan dries. Drain and serve with the wings and wedges.'
+  ],
+  safety:'Measure several flats and drumettes; avoid the bone. Keep raw-wing juices and raw-food tongs away from the cooked wings, potatoes and broccoli.'
+},
+{
+  time:'Prep 10 min · Cook 25–30 min · Total 35–40 min',
+  equipment:'Oven, rimmed baking dish, two small saucepans (one with lid), sieve, fork, instant-read food thermometer.',
+  prep:[
+    'Heat the oven to 400°F (205°C). Use two raw salmon fillets of about 5 oz each and 1 inch thick. Pat dry. Rinse the cucumber and cut into 1/4-inch half-moons.',
+    'Rinse 3/4 cup dry long-grain white rice in a fine sieve and drain. Measure 1 cup frozen shelled edamame, without pods.'
+  ],
+  steps:[
+    'Combine the rice, 1 1/2 cups water and 1/8 tsp salt in the lidded saucepan. Bring to a boil over high heat, cover and reduce to low. Simmer gently 18–20 minutes without lifting the lid. Remove from heat and rest covered 5 minutes, then fluff. The water should be absorbed and rice tender; if firm, add 2 tbsp water and cook covered on low 3–5 minutes more.',
+    'While rice simmers, put the salmon skin-side down in the baking dish. Rub with 2 tsp olive oil, the remaining 1/8 tsp salt and 1/8 tsp black pepper. Bake 12–16 minutes, until 145°F (63°C) in the thickest part, with flesh opaque and easy to flake. If below temperature, bake 2 minutes more and check again.',
+    'Bring the remaining 4 cups water to a boil over high heat in the second saucepan. Add the frozen shelled edamame and simmer over medium heat 6–8 minutes, until tender and steaming hot throughout, reaching 165°F (74°C). Drain.',
+    'Put all the rice in a bowl, top with salmon, edamame and cucumber, and drizzle with 1 tbsp soy sauce. Serve immediately.'
+  ],
+  safety:'Keep cucumber and cooked rice away from the raw salmon board. Check salmon temperature in the thickest part and cool any leftover rice promptly.'
+},
+{
+  time:'Prep 5 min · Cook 25–30 min · Total 30–35 min',
+  equipment:'Small saucepan with lid, fine sieve, large skillet, spatula, instant-read food thermometer.',
+  prep:[
+    'Rinse 3/4 cup dry long-grain white rice and drain. Drain and rinse canned black beans, then measure 1 cup. Measure 1/2 cup salsa.',
+    'Measure 1 tsp ground cumin, 1 tsp salt-free chili powder blend, 1/2 tsp paprika and 1/4 tsp black pepper. Use 90% lean ground beef.'
+  ],
+  steps:[
+    'Combine rice, 1 1/2 cups water and 1/8 tsp salt in the saucepan. Bring to a boil over high heat. Cover, reduce to low and simmer gently 18–20 minutes. Remove from heat and rest covered 5 minutes, then fluff. If the rice is still firm, add 2 tbsp water and cook covered on low 3–5 minutes more, until tender with water absorbed.',
+    'While rice simmers, heat 1 tsp olive oil in the skillet over medium-high heat for 2 minutes. Add beef and cook 8–10 minutes, breaking it into 1/2-inch crumbles. Check several large crumbles with a thermometer: the beef must reach 160°F (71°C). Carefully spoon off excess fat if needed.',
+    'Lower to medium-low. Stir in cumin, chili powder, paprika, black pepper, the remaining 1/8 tsp salt, the remaining 1/4 cup water and the beans. Simmer 3–5 minutes, stirring, until beans are hot and the mixture reaches 165°F (74°C). Add a little water if the pan dries.',
+    'Spoon all the rice into a large bowl, add the beef-and-bean mixture and top with the salsa. Serve immediately.'
+  ],
+  safety:'Use canned, already cooked beans. Check ground beef with a thermometer rather than relying on brown color; refrigerate leftover rice and beef promptly.'
+},
+{
+  time:'Prep 10 min · Cook 15–20 min · Total 25–30 min',
+  equipment:'Large saucepan, colander, large skillet, tongs or spatula, grater, instant-read food thermometer.',
+  prep:[
+    'Use thawed raw shrimp with shells, veins and tails removed. Pat dry with paper towels. Peel and finely mince the 3 garlic cloves. Rinse and dry spinach, and grate Parmesan.',
+    'Measure 5 oz dry penne pasta. Reserve 1/4 tsp salt for the shrimp and 1/4 tsp for the pasta water.'
+  ],
+  steps:[
+    'Bring 8 cups water and 1/4 tsp salt to a rolling boil over high heat. Add penne and cook uncovered at a steady boil for 10–12 minutes, stirring occasionally, until tender with a slight bite and no hard center. If still hard, cook 1 minute at a time and taste again. Scoop out 1/2 cup cooking water, then drain the pasta.',
+    'While pasta cooks, heat 2 tsp olive oil in the skillet over medium heat for 2 minutes. Season shrimp with the remaining 1/4 tsp salt and 1/4 tsp black pepper. Cook in a single layer, in batches if crowded, for 2–3 minutes per side, until 145°F (63°C) in the thickest part. The flesh must be pearly, opaque and firm all the way through; cut the largest shrimp to check for any translucent center, and cook another minute if needed. Transfer to a clean plate.',
+    'Add the remaining 1 tsp olive oil to the skillet over medium heat. Stir in garlic for 30 seconds, until fragrant without browning. Add spinach and stir for 1–2 minutes, until wilted.',
+    'Return shrimp to the pan with pasta, Parmesan and 1/4 cup reserved pasta water. Toss over medium-low heat for 1–2 minutes, until hot and lightly coated. Add the remaining reserved water 1 tbsp at a time if dry. Serve immediately.'
+  ],
+  safety:'Check the largest shrimp for opaque flesh throughout; time alone is not a doneness check. Use a clean plate for cooked shrimp and wash utensils that touched raw shrimp.'
+},
+{
+  time:'Prep 10 min · Cook 30–35 min · Total 40–45 min',
+  equipment:'Oven, rimmed baking sheet, large skillet with lid, spatula, instant-read food thermometer.',
+  prep:[
+    'Heat the oven to 425°F (220°C). Scrub the sweet potatoes and cut into even 1/4-inch-thick fries.',
+    'Gently mix the ground turkey with 1/4 tsp salt, 1/8 tsp black pepper and 1/2 tsp garlic powder. Shape into two equal 6 oz patties, about 3/4 inch thick. Wash hands and utensils after handling raw turkey.'
+  ],
+  steps:[
+    'Toss fries with 2 tsp olive oil, the remaining 1/4 tsp salt and 1/8 tsp black pepper, and 1/2 tsp paprika. Spread in one layer on the baking sheet. Roast 25–30 minutes, turning halfway, until browned at the edges and fork-tender. If still firm, roast 5 minutes more.',
+    'During the last 15–20 minutes of roasting, heat the remaining 1 tsp oil in the skillet over medium heat for 2 minutes. Cook patties 6–8 minutes per side, until 165°F (74°C) in each center. Insert the thermometer from the side. If the outside browns too quickly, reduce to medium-low and cover; continue 1 minute at a time until the centers reach temperature.',
+    'Transfer patties to a clean plate. Toast the split buns cut-side down in the empty skillet over medium heat for 1–2 minutes, until lightly golden. Put one patty in each bun and serve both burgers with the fries.'
+  ],
+  safety:'Turkey patties must reach 165°F (74°C); pinkness or clear juices cannot establish safety. Check each patty and use a clean spatula and plate for serving.'
+},
+{
+  time:'Prep 15 min · Cook 25–30 min · Total 40–45 min',
+  equipment:'Small saucepan with lid, sieve, large skillet or wok, bowl, spatula, instant-read food thermometer.',
+  prep:[
+    'Rinse 3/4 cup dry long-grain white rice and drain. Rinse 3 cups fresh stir-fry vegetables: a mix of broccoli, carrots and bell pepper. Cut broccoli into 1-inch florets, carrots into 1/8-inch slices and pepper into 1/2-inch strips. Peel and mince 2 garlic cloves.',
+    'In a clean bowl, mix 2 tbsp soy sauce, 1/4 cup water, 1 tsp cornstarch and 1/4 tsp black pepper until smooth.',
+    'On a separate board, cut the boneless skinless chicken thighs into even 1-inch pieces. Wash hands, knife and board after handling raw chicken.'
+  ],
+  steps:[
+    'Put rice and the remaining 1 1/2 cups water in the saucepan. Bring to a boil over high heat, cover and reduce to low. Simmer gently 18–20 minutes. Remove from heat and rest covered 5 minutes, then fluff. If still firm, add 2 tbsp water and cook covered on low 3–5 minutes more, until tender with water absorbed.',
+    'While rice simmers, heat 1 tsp olive oil in the skillet over medium-high heat for 2 minutes. Add half the chicken in one layer and cook 4–6 minutes, turning often, until 165°F (74°C) in several of the thickest pieces. Transfer to a clean plate. Repeat with another 1 tsp oil and the remaining chicken, continuing to temperature as needed.',
+    'Add the remaining 1 tsp oil to the skillet over medium-high heat. Stir-fry the vegetables for 5–7 minutes, until carrots are tender with a slight bite and broccoli is bright green. Add garlic and stir for 30 seconds.',
+    'Return cooked chicken and its juices to the skillet. Stir the sauce again, pour it in and bring to a bubble. Stir-fry 1–2 minutes, until the sauce lightly thickens and the chicken is 165°F (74°C). Serve all the stir-fry over the rice.'
+  ],
+  safety:'Check several chicken pieces from each batch. Keep the sauce bowl and prepared vegetables separate from raw chicken, and chill leftover rice promptly.'
+},
+{
+  time:'Prep 10 min · Cook 25–35 min · Total 35–45 min',
+  equipment:'Oven, rimmed baking dish, two saucepans, colander, potato masher or fork, instant-read food thermometer.',
+  prep:[
+    'Heat the oven to 425°F (220°C). Peel the potatoes and cut into 1-inch cubes. Rinse the green beans and trim their stem ends.',
+    'Use a whole 13 oz piece of pork tenderloin about 1 1/2–2 inches thick. Trim off tough silvery membrane with a small knife. Pat dry and rub with 2 tsp olive oil, 1/4 tsp salt, 1/8 tsp black pepper and 1/2 tsp garlic powder.'
+  ],
+  steps:[
+    'Place pork in the baking dish and roast 18–25 minutes, until 145°F (63°C) in the thickest center. Check starting at 18 minutes; if below temperature, cook 2 minutes more and check again. Move to a clean board and rest at least 3 minutes before slicing.',
+    'While pork roasts, put potatoes and 4 cups water in a saucepan, adding extra water to cover by 1 inch if needed. Bring to a boil over high heat, then simmer over medium heat for 12–15 minutes, until a fork enters easily. Drain, return to the pan and mash with 1 tbsp butter, 1/4 cup milk, the remaining 1/4 tsp salt and 1/8 tsp black pepper. Stir over low heat for 1–2 minutes, until hot and smooth.',
+    'Bring the remaining 2 cups water to a boil over high heat in the second saucepan. Add green beans, cover and simmer over medium heat for 6–8 minutes, stirring once, until tender with a slight bite. Drain.',
+    'After the full 3-minute rest, slice pork across the grain into 1/2-inch slices. Serve all the pork with mash and green beans.'
+  ],
+  safety:'Pork needs 145°F (63°C) before leaving the oven, followed by at least a 3-minute rest. Use a clean board and knife for slicing the cooked pork.'
+}
+];
+const kitchenSafety='Wash hands with soap for 20 seconds before cooking and after handling raw meat, seafood or eggs. Rinse produce under running water. Keep raw food and its utensils separate from cooked food. Thaw frozen meat or seafood in the refrigerator at 40°F (4°C) or below before starting; do not rinse raw meat or poultry. Wash the thermometer probe between checks.';
+const leftoverSafety='Serve promptly. Put leftovers, including rice, into shallow containers and refrigerate within 2 hours, or 1 hour above 90°F (32°C). Keep at 40°F (4°C) or below. Eat within 3–4 days or freeze. Reheat to 165°F (74°C) throughout. Discard food left out beyond these limits.';
+function quantity(q){
+  const parts=['','1/8','1/4','3/8','1/2','5/8','3/4','7/8'];
+  const whole=Math.floor(q),eighths=Math.round((q-whole)*8);
+  if(eighths===8)return String(whole+1);
+  return (whole?String(whole)+(eighths?' ':''):'')+parts[eighths]||'0';
+}
+function unit(n,q){const m=n.match(/^(.*?) \((oz|cups|tsp|tbsp)\)$/);return m?quantity(q)+' '+(m[2]==='cups'&&q<=1?'cup':m[2])+' '+m[1]:quantity(q)+' × '+n}
+function isShoppingIngredient(n){return !n.startsWith('Water (')}
+function recipeDetails(i){
+  const r=recipes[i],g=guides[i];
+  return '<details class="recipe-guide"><summary>Ingredients & cooking steps</summary>'+
+    '<p class="recipe-time">1 substantial meal · '+g.time+'</p>'+
+    '<p>'+(r[4].Eggs?'Use large eggs. ':'')+'Meat and seafood weights are raw unless labeled fully cooked; rice, oats and pasta are measured dry. Times are estimates: use the doneness checks below.</p>'+
+    '<h4>Equipment</h4><p>'+g.equipment+'</p>'+
+    '<h4>Ingredients</h4><ul class="ingredients">'+Object.entries(r[4]).map(([n,q])=>'<li>'+unit(n,q)+'</li>').join('')+'</ul>'+
+    '<p>Water for rinsing and small cooking adjustments is additional.</p>'+
+    '<h4>Before you start</h4><p>'+kitchenSafety+'</p>'+
+    '<h4>Prepare</h4><ol>'+g.prep.map(s=>'<li>'+s+'</li>').join('')+'</ol>'+
+    '<h4>Cook & serve</h4><ol>'+g.steps.map(s=>'<li>'+s+'</li>').join('')+'</ol>'+
+    '<div class="food-safety"><h4>Doneness & food safety</h4><p>'+g.safety+'</p><p>'+leftoverSafety+'</p>'+
+    '<p>Safety references: <a href="https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures">FoodSafety.gov temperatures</a> and <a href="https://www.fda.gov/food/buy-store-serve-safe-food/safe-food-handling">FDA handling guidance</a>. All cooking instructions are included above.</p></div></details>';
+}
 const el=id=>document.getElementById(id),persist=()=>localStorage.setItem(key,JSON.stringify(state));
 function make(){const bs=[0,1,2,3,4,5,6].sort(()=>Math.random()-.5),ds=[7,8,9,10,11,12,13].sort(()=>Math.random()-.5);state.plan=bs.map((x,i)=>[x,ds[i]]);state.checked={};persist();render()}
-function groceries(){const out={};state.plan.flat().forEach(i=>Object.entries(recipes[i][4]).forEach(([n,q])=>out[n]=(out[n]||0)+q));return Object.entries(out).sort((a,b)=>a[0].localeCompare(b[0]))}
-function render(){el('calText').textContent=state.cal;el('proteinText').textContent=state.protein+'g';el('cal').value=state.cal;el('protein').value=state.protein;el('days').innerHTML=state.plan.map((pair,d)=>'<div class="card"><div class="row"><h3>'+names[d]+'</h3><small>'+pair.reduce((s,i)=>s+recipes[i][2],0)+' cal · '+pair.reduce((s,i)=>s+recipes[i][3],0)+'g protein</small></div>'+pair.map((i,j)=>'<div class="meal"><small>Meal '+(j+1)+'</small><strong>'+recipes[i][0]+'</strong><small>'+recipes[i][2]+' cal · '+recipes[i][3]+'g protein</small><details><summary>Ingredients & cooking steps</summary><p>'+Object.entries(recipes[i][4]).map(([n,q])=>q+' × '+n).join(', ')+'</p><ol>'+guides[i].split('; ').map(step=>'<li style="margin:8px 0">'+step+'</li>').join('')+'</ol></details><button class="alt" data-swap="'+d+','+j+'">Swap ↻</button></div>').join('')+'</div>').join('');el('list').innerHTML=groceries().map(([n,q])=>'<label class="'+(state.checked[n]?'done':'')+'"><input type="checkbox" data-check="'+n+'" '+(state.checked[n]?'checked':'')+'> '+q+' × '+n+'</label>').join('')}
+function groceries(){const out={};state.plan.flat().forEach(i=>Object.entries(recipes[i][4]).forEach(([n,q])=>{if(isShoppingIngredient(n))out[n]=(out[n]||0)+q}));return Object.entries(out).sort((a,b)=>a[0].localeCompare(b[0]))}
+function render(){
+  el('calText').textContent=state.cal;
+  el('proteinText').textContent=state.protein+'g';
+  el('cal').value=state.cal;
+  el('protein').value=state.protein;
+  el('days').innerHTML=state.plan.map((pair,d)=>
+    '<div class="card"><div class="row"><h3>'+names[d]+'</h3><small>'+pair.reduce((s,i)=>s+recipes[i][2],0)+' cal · '+pair.reduce((s,i)=>s+recipes[i][3],0)+'g protein</small></div>'+pair.map((i,j)=>
+      '<div class="meal"><small>Meal '+(j+1)+'</small><strong>'+recipes[i][0]+'</strong><small>'+recipes[i][2]+' cal · '+recipes[i][3]+'g protein</small>'+recipeDetails(i)+'<button class="alt" data-swap="'+d+','+j+'">Swap ↻</button></div>'
+    ).join('')+'</div>'
+  ).join('');
+  el('list').innerHTML=groceries().map(([n,q])=>'<label class="'+(state.checked[n]?'done':'')+'"><input type="checkbox" data-check="'+n+'" '+(state.checked[n]?'checked':'')+'> '+unit(n,q)+'</label>').join('');
+}
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('section').forEach(s=>s.hidden=s.id!==b.dataset.tab);document.querySelectorAll('[data-tab]').forEach(x=>x.className=x===b?'':'alt')});
 el('days').onclick=e=>{const b=e.target.closest('[data-swap]');if(!b)return;const [d,j]=b.dataset.swap.split(',').map(Number),current=state.plan[d][j],options=recipes.map((r,i)=>i).filter(i=>recipes[i][1]===(j?'D':'B')&&i!==current&&!state.plan.some(p=>p[j]===i));state.plan[d][j]=options.length?options[Math.floor(Math.random()*options.length)]:recipes.map((r,i)=>i).find(i=>recipes[i][1]===(j?'D':'B')&&i!==current);state.checked={};persist();render()};
 el('generate').onclick=()=>{if(confirm('Replace the current meal plan?'))make()};
 el('list').onchange=e=>{if(e.target.dataset.check){state.checked[e.target.dataset.check]=e.target.checked;persist();render()}};
 el('uncheck').onclick=()=>{state.checked={};persist();render()};
-el('copy').onclick=async()=>{const t=groceries().map(([n,q])=>q+' × '+n).join('\n');try{await navigator.clipboard.writeText(t);alert('Copied!')}catch{prompt('Copy this list:',t)}};
+el('copy').onclick=async()=>{const t=groceries().map(([n,q])=>unit(n,q)).join('\n');try{await navigator.clipboard.writeText(t);alert('Copied!')}catch{prompt('Copy this list:',t)}};
 el('save').onclick=()=>{const c=+el('cal').value,p=+el('protein').value;if(c<1000||c>5000||p<30||p>350)return alert('Invalid targets');state.cal=c;state.protein=p;persist();render();alert('Saved')};
 if(!state.plan.length)make();else render();
 </script></body></html>
